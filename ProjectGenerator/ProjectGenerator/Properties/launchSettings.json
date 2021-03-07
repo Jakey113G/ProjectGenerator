@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ProjectGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "ProjectTemplate.xml"
+    }
+  }
+}
