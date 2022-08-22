@@ -27,7 +27,7 @@ namespace ProjectGenerator.Utility
 
         public static void CreateCompileNodesInGroup(XmlNode parentNode, string path)
         {
-            var element = parentNode.OwnerDocument.CreateElement("ClCompile", parentNode.OwnerDocument.FirstChild.NamespaceURI);
+            var element = parentNode.OwnerDocument.CreateElement("ClCompile", parentNode.NamespaceURI);
             element.SetAttribute("Include", path);
 
             parentNode.AppendChild(element);
@@ -35,12 +35,12 @@ namespace ProjectGenerator.Utility
 
         public static void CreateIncludeNodeInGroup(XmlNode parentNode, string path, string optionalFilter)
         {
-            XmlElement element = parentNode.OwnerDocument.CreateElement("ClInclude", parentNode.OwnerDocument.FirstChild.NamespaceURI);
+            XmlElement element = parentNode.OwnerDocument.CreateElement("ClInclude", parentNode.NamespaceURI);
             element.SetAttribute("Include", path);
 
             if (optionalFilter != null)
             {
-                XmlElement filterXMLGroup = parentNode.OwnerDocument.CreateElement("Filter", parentNode.OwnerDocument.FirstChild.NamespaceURI); ;
+                XmlElement filterXMLGroup = parentNode.OwnerDocument.CreateElement("Filter", parentNode.NamespaceURI);
                 filterXMLGroup.InnerText = optionalFilter;
                 element.AppendChild(filterXMLGroup);
             }
