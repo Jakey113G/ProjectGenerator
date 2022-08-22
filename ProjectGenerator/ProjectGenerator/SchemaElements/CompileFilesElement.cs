@@ -13,14 +13,11 @@ namespace ProjectGenerator.SchemaElements
             SearchPatternArg = "*.cpp";
         }
 
-        public override void CreateDataXMLNodesInElement(System.Xml.XmlNode parentNode)
+        public override void AddDataToMetaInformation(GroupMetaInformation meta)
         {
             foreach (string s in m_FilePathsFromQuery)
             {
-                var element = parentNode.OwnerDocument.CreateElement("ClCompile", parentNode.OwnerDocument.FirstChild.NamespaceURI);
-                element.SetAttribute("Include", s);
-
-                parentNode.AppendChild(element);
+                meta.AddItem(s, null, ItemElementType.Compile);
             }
         }
     }

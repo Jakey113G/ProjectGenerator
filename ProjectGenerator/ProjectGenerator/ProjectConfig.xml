@@ -1,0 +1,11 @@
+﻿<Project>
+  <ItemGroup>
+    <!-- intentionally left blank - existing project has a group to ignore-->
+  </ItemGroup>
+  <ItemGroup>
+    <CompileFilesElement Directory="./" SearchPattern="*h" SearchOption="TopDirectoryOnly"/>
+  </ItemGroup>
+  <ItemGroup>
+    <IncludeFilesElement Directory="./" SearchPattern="*cpp" SearchOption="TopDirectoryOnly"/>
+  </ItemGroup>
+</Project>

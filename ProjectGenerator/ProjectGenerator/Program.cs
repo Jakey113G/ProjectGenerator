@@ -1,47 +1,43 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace ProjectGenerator
 {
-    //I've made this utility because the project files we use are too complex to resolve manually and apparently changing it is not possible. 
-    //All this does is search through a template xml file (mostly the project file) and parses specialized xml nodes to substitute some data in to.
-    //additionally it works around https://docs.microsoft.com/en-us/cpp/build/reference/vcxproj-files-and-wildcards?view=msvc-160 so we can generate all the individual items 
+    //I've made this utility because the project files and filters require manual merging for adding files in. 
+    //All this does is search through an existing project or filter file, it parses existing groups to know of what files are includes already.
+    //Then it will add in files that are missing based on the config file.
+    
+    //Additionally this helps to work around https://docs.microsoft.com/en-us/cpp/build/reference/vcxproj-files-and-wildcards?view=msvc-160 so we can generate all the individual items 
     class ProjectGenerator
     {            
         static void Main(string[] args)
         {
-            //Argument checks
+            //Read and process argument data
+            if(!Utility.Arguments.ProcessArguments(args))
             {
-                bool validArgCount = args.Length >= 1;
-                Debug.Assert(validArgCount, "Not enough arguments to parse template into project file");
-                if (!validArgCount)
-                { 
-                    return; 
-                }
-
-                bool validPathToTemplate = System.IO.File.Exists(args[0]);
-                Debug.Assert(validPathToTemplate, "Template file at path %s does not exist", args[0]);
-                if(!validPathToTemplate)
-                {
-                    return;
-                }
-
-                bool validExtensionOnTemplate = System.IO.Path.GetExtension(args[0]) == ".xml";
-                Debug.Assert(validExtensionOnTemplate, "Template file of type %s when we expected .xml", System.IO.Path.GetExtension(args[0]));
-                if (!validExtensionOnTemplate)
-                {
-                    return;
-                }
+                return;
             }
 
-            //main program
+            //Import files - inspect file system and make changes to project file
             {
-                string importTemplatePath = args[0];
+                //Load project file (vcxproj, vcxproj.filters, etc)
+                string importTemplatePath = Utility.Arguments.ImportProjectFile;
                 ProjectDocumentData data = new ProjectDocumentData(importTemplatePath);
 
-                //Use arg or form a new path from template file
-                string exportSavePath = args.Length > 1 ? args[1] : System.IO.Path.ChangeExtension(args[0], ".vcxproj");                
-                data.ExportParsedDocument(exportSavePath);
+                //Load/Create config that will be applied to the project
+                ConfigData config = new ConfigData();
+                if (Utility.Arguments.ImportConfigFile.Length == 0)
+                {
+                    //Make default one from existing document; e.g basic functionality like adding in files in same directory as existing includes
+                    config.CreateBasicConfigFromProjectXML(data);
+                }
+                else
+                {
+                    //Import config that specifies what/how to change existing project files
+                    config.ImportConfig(Utility.Arguments.ImportConfigFile);
+                }
+
+                data.GenerateProjectChanges(config.GetMetaInformation());
+                data.ExportParsedDocument(Utility.Arguments.OutputProjectFile);
             }
         }
     }

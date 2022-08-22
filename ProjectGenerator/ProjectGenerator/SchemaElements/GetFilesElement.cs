@@ -17,23 +17,28 @@ namespace ProjectGenerator.SchemaElements
         public GetFilesElement()
         {
             m_FilePathsFromQuery = new List<string>();
-            DirectoryArg = Directory.GetCurrentDirectory();
+            DirectoryArg = Arguments.ProjectDirectory;
             SearchOptionArg = SearchOption.TopDirectoryOnly;
         }
 
-        public void LoadPropertiesFromXML(System.Xml.XmlNode node)
+        public virtual void Initialize()
         {
-            DirectoryArg = XMLHelpers.GetAttributeFieldOrNull(node, "Directory") ?? DirectoryArg;
-            SearchPatternArg = XMLHelpers.GetAttributeFieldOrNull(node, "SearchPattern") ?? SearchPatternArg;
-
-            Enum.TryParse(node.Attributes.GetNamedItem("SearchOption")?.Value, out SearchOption SearchOptionArg);
-
             foreach (string s in Directory.GetFiles(DirectoryArg, SearchPatternArg, SearchOptionArg))
             {
                 m_FilePathsFromQuery.Add(s);
             }
         }
 
-        public abstract void CreateDataXMLNodesInElement(System.Xml.XmlNode data);
+        public virtual void LoadPropertiesFromXML(System.Xml.XmlNode node)
+        {
+            string attributeField = XMLHelpers.GetAttributeFieldOrNull(node, "Directory") ?? "";
+            DirectoryArg = FileSystemHelpers.ConvertPathToAbsolute(attributeField);
+
+            SearchPatternArg = XMLHelpers.GetAttributeFieldOrNull(node, "SearchPattern") ?? SearchPatternArg;
+
+            Enum.TryParse(node.Attributes.GetNamedItem("SearchOption")?.Value, out SearchOption SearchOptionArg);
+        }
+
+        public abstract void AddDataToMetaInformation(GroupMetaInformation meta);
     }
 }

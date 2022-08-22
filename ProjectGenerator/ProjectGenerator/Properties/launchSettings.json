@@ -2,7 +2,7 @@
   "profiles": {
     "ProjectGenerator": {
       "commandName": "Project",
-      "commandLineArgs": "ProjectTemplate.xml"
+      "commandLineArgs": "Test.vcxproj ProjectConfig.xml"
     }
   }
 }

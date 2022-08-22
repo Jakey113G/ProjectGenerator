@@ -4,47 +4,64 @@ using System.Text;
 using System.Xml;
 using ProjectGenerator.SchemaElements;
 using System.Collections.ObjectModel;
+using ProjectGenerator.Utility;
 
 namespace ProjectGenerator
 {
-    //Using https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-project-file-schema-reference?view=vs-2019
-    //https://docs.microsoft.com/en-us/cpp/build/walkthrough-using-msbuild-to-create-a-visual-cpp-project?view=msvc-160
-    //We organise the data in this object, the Builder can then process this information into an xml
+    //Representation of the document
     class ProjectDocumentData
     {
         private XmlDocument doc;
-        private static readonly Type[] CustomElements = { typeof(IncludeFilesElement), typeof(CompileFilesElement) };
 
         public ProjectDocumentData(string path)
         {
             doc = new XmlDocument();
             doc.Load(path);
+        }
 
-            foreach (Type t in CustomElements)
+        public void GenerateProjectChanges(ProjectMetaInformation metaInformation)
+        {
+            //Specified by https://docs.microsoft.com/en-us/cpp/build/walkthrough-using-msbuild-to-create-a-visual-cpp-project?view=msvc-170
+            var groupList = doc.GetElementsByTagName("ItemGroup");
+
+            int index = 0;
+            foreach(var groupMeta in metaInformation.GetGroupMetaInformation())
             {
-                XmlNodeList list = doc.GetElementsByTagName(t.Name);
+                var documentGroup = groupList.Item(index);
 
-                //Create & add new nodes
-                foreach(XmlNode originalNode in list)
+                //Trust our meta data instead of what is already here (in future maybe we do merging)
+                documentGroup.RemoveAll();
+
+                foreach(var fileData in groupMeta.m_ElementData)
                 {
-                    ISchemaElement element = Activator.CreateInstance(t) as ISchemaElement;
-                    element.LoadPropertiesFromXML(originalNode);
-                    element.CreateDataXMLNodesInElement(originalNode.ParentNode);
+                    switch(fileData.ItemType)
+                    {
+                        case ItemElementType.Compile:
+                        {
+                            string pathInXML = Utility.FileSystemHelpers.GetPathIfRelative(fileData.AbsolutePath, Arguments.ProjectDirectory);
+                            Utility.XMLHelpers.CreateCompileNodesInGroup(documentGroup, pathInXML);
+                            break;
+                        }
+                        case ItemElementType.Include:
+                        {
+                            string pathInXML = Utility.FileSystemHelpers.GetPathIfRelative(fileData.AbsolutePath, Arguments.ProjectDirectory);
+                            Utility.XMLHelpers.CreateIncludeNodeInGroup(documentGroup, pathInXML, fileData.FilterPath);
+                            break;
+                        }
+                    }
                 }
-
-                //remove old nodes
-                for(int i = 0; i < list.Count; ++i)
-                {
-                    XmlNode parent = list[i].ParentNode;
-                    parent.RemoveChild(list[i]);
-                }
-
+                ++index;
             }
         }
 
         public void ExportParsedDocument(string s)
         {
             doc.Save(s);
+        }
+
+        public XmlDocument GetDocument()
+        {
+            return doc;
         }
     }
 }
