@@ -1,4 +1,5 @@
-﻿<Project>
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<Project>
   <ItemGroup>
     <!-- intentionally left blank - existing project has a group to ignore-->
   </ItemGroup>
